@@ -352,20 +352,30 @@
 - (NSArray *) arrayForProperty: (ABPropertyID) anID
 {
 	CFTypeRef theProperty = ABRecordCopyValue(record, anID);
-	NSArray *items = (NSArray *)ABMultiValueCopyArrayOfAllValues(theProperty);
-	CFRelease(theProperty);
-	return [items autorelease];
+    if (theProperty == NULL)
+    {
+        return nil;
+    }
+    NSArray *items =  CFBridgingRelease(ABMultiValueCopyArrayOfAllValues(theProperty));
+    CFRelease(theProperty);
+    return items;
 }
 
 - (NSArray *) labelsForProperty: (ABPropertyID) anID
 {
 	CFTypeRef theProperty = ABRecordCopyValue(record, anID);
+    if (theProperty == NULL)
+    {
+        return nil;
+    }
 	NSMutableArray *labels = [NSMutableArray array];
 	for (int i = 0; i < ABMultiValueGetCount(theProperty); i++)
 	{
-		NSString *label = (NSString *)ABMultiValueCopyLabelAtIndex(theProperty, i);
-		[labels addObject:label];
-		[label release];
+		NSString *label = CFBridgingRelease(ABMultiValueCopyLabelAtIndex(theProperty, i));
+        if (label)
+        {
+            [labels addObject:label];
+        }
 	}
 	CFRelease(theProperty);
 	return labels;
